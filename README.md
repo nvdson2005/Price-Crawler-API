@@ -20,3 +20,5 @@ The api documentation can be seen at:
 ```
 http://127.0.0.1:8000/docs
 ```
+## Note
+To avoid excessive information, each site is limited to return its top 5 products in one crawling process. This limitation can be changed in `main.py`.
