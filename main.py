@@ -156,12 +156,22 @@ async def crawl_prod(prod_name: str):
         browser = await p.chromium.launch(headless=True)
         crawl_sites = [BachHoaXanhCrawler(), WinmartCrawler(), CoopOnlineCrawler()]
         # crawl_sites = [WinmartCrawler()]
+        # Tasks for each crawler
+        tasks = [site.crawl_prod_prices(prod_name, browser) for site in crawl_sites]
+        
+        # Gather results from all crawlers
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         return_info = []
-        for crawl_site in crawl_sites:
-            print(f"Crawling site: {crawl_site.site_name}")
-            return_list = await crawl_site.crawl_prod_prices(prod_name, browser)
-            for product in return_list:
-                return_info.append(product)
+        for result in results:
+            if isinstance(result, Exception):
+                print(f"Error occurred: {result}")
+            else:
+                return_info.extend(result)
+        # for crawl_site in crawl_sites:
+        #     print(f"Crawling site: {crawl_site.site_name}")
+        #     return_list = await crawl_site.crawl_prod_prices(prod_name, browser)
+        #     for product in return_list:
+        #         return_info.append(product)
         await browser.close()
         print("Browser closed, finished crawling.")
         # print(f"Results: {json.dumps(return_info, indent=2)}")
