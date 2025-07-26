@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from main import crawl_prod
 app = FastAPI()
 
-@app.get('/crawl/')
+@app.get('/crawl')
 async def crawl_controller(name: str = ""):
     if not name:
         return {"error": True, "message": "Product name is required."}
