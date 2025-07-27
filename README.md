@@ -16,6 +16,13 @@ http://127.0.0.1:8000/crawl
 ```
 Accept one query parameter, `name` for the name of the food.
 
+Another endpoint for crawling, using `StreamingResponse` from `fastapi.responses` module is located in:
+```url
+http://127.0.0.1:8000/streaming-crawl
+```
+
+Accept one query parameter, `name` for the name of the food.
+
 The api documentation can be seen at:
 ```
 http://127.0.0.1:8000/docs
