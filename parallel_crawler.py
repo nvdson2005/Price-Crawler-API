@@ -1,6 +1,7 @@
 from playwright.async_api import async_playwright, Browser, Playwright
 from urllib.parse import urljoin
 from base_crawler import CrawlSite
+from typing import Literal
 import asyncio
 
 class BachHoaXanhCrawler(CrawlSite):
@@ -9,7 +10,7 @@ class BachHoaXanhCrawler(CrawlSite):
     def __init__(self):
         super().__init__(self.base_url, self.site_name)
         
-    async def crawl_prod_prices(self, prod_name: str, current_browser: Browser):
+    async def crawl_prod_prices(self, prod_name, current_browser, crawl_mode):
         context = await current_browser.new_context()
         page = await context.new_page()
         await page.goto(f"{self.base_url}/tim-kiem?key={prod_name}")
@@ -18,7 +19,7 @@ class BachHoaXanhCrawler(CrawlSite):
         print(f"Found {len(products)} products on BachHoaXanh") 
         return_info = []
         for i, product in enumerate(products):
-            if i >= 5:
+            if crawl_mode == "top-products" and i >= 5:
                 break
             try:
                 p_name = (await product.locator('css=h3').text_content()).strip()
@@ -53,7 +54,7 @@ class WinmartCrawler(CrawlSite):
     def __init__(self):
         super().__init__(self.base_url, self.site_name)
     
-    async def crawl_prod_prices(self, prod_name, current_browser):
+    async def crawl_prod_prices(self, prod_name, current_browser, crawl_mode):
         context = await current_browser.new_context()
         page = await context.new_page()
         await page.goto(f"{self.base_url}/search/{prod_name}") 
@@ -62,7 +63,7 @@ class WinmartCrawler(CrawlSite):
         print(f"Found {len(products)} products on Winmart")
         return_info = []
         for i, product in enumerate(products):
-            if i >= 5:
+            if crawl_mode == "top-products" and i >= 5:
                 break
             p_name = (await product.locator('css=div.product-card-two__Title-sc-1lvbgq2-6').inner_text()).strip()
             p_price = (await product.locator('css=div.product-card-two__Price-sc-1lvbgq2-9').inner_text())[:-2].strip()
@@ -93,7 +94,7 @@ class CoopOnlineCrawler(CrawlSite):
     def __init__(self):
         super().__init__(self.base_url, self.site_name)
     
-    async def crawl_prod_prices(self, prod_name, current_browser):
+    async def crawl_prod_prices(self, prod_name, current_browser, crawl_mode):
         context = await current_browser.new_context()
         page = await context.new_page()
         await page.goto(f"{self.base_url}/search?router=productListing&query={prod_name}") 
@@ -102,7 +103,7 @@ class CoopOnlineCrawler(CrawlSite):
         print(f"Found {len(products)} products on Coop Online")
         return_info = []
         for i, product in enumerate(products):
-            if i >= 5:
+            if crawl_mode == "top-products" and i >= 5:
                 break
             p_name = (await product.locator('css=h3.css-1xdyrhj').inner_text()).strip()
             p_price = (await product.locator('css=div.att-product-detail-latest-price').inner_text())[:-2].strip()
@@ -125,12 +126,12 @@ class CoopOnlineCrawler(CrawlSite):
             print(f"Stop crawling from {self.base_url}")
         return return_info
 
-async def crawl_prod(prod_name: str):
+async def crawl_prod(prod_name: str, crawl_mode: Literal["top-products", "all-products"] = "top-products"):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         crawl_sites = [BachHoaXanhCrawler(), WinmartCrawler(), CoopOnlineCrawler()]
         # Tasks for each crawler
-        tasks = [site.crawl_prod_prices(prod_name, browser) for site in crawl_sites]
+        tasks = [site.crawl_prod_prices(prod_name, browser, crawl_mode) for site in crawl_sites]
         
         # Gather results from all crawlers
         results = await asyncio.gather(*tasks, return_exceptions=True)

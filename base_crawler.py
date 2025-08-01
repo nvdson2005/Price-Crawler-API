@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from playwright.async_api import Browser
+from typing import Literal
 class CrawlSite(ABC):
     base_url = None
     site_name = None
@@ -12,6 +13,6 @@ class CrawlSite(ABC):
             raise NotImplementedError(f"Class {cls.__name__} must define base_url and site_name attributes.")
 
     @abstractmethod
-    async def crawl_prod_prices(self, prod_name: str, current_browser: Browser):
+    async def crawl_prod_prices(self, prod_name: str, current_browser: Browser, crawl_mode: Literal["top-products", "all-products"] = "top-products"):
         """Subclass must implement this method to crawl product prices."""
         pass
