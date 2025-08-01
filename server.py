@@ -4,15 +4,16 @@ from streaming_crawl import streaming_crawl_prod
 from parallel_crawler import crawl_prod
 # import asyncio
 import json
+from typing import Literal
 app = FastAPI()
 
 @app.get('/crawl')
-async def crawl_controller(name: str = ""):
+async def crawl_controller(name: str = "", crawl_mode: Literal["top-products", "all-products"] = "top-products"):
     if not name:
         return {"error": True, "message": "Product name is required."}
     print(f"Received request to crawl product: {name}")
     try:
-        products = await crawl_prod(name)
+        products = await crawl_prod(name, crawl_mode)
         if not products:
             return {"error": True, "message": "No products found."}
         return {"error": False, "message": "Data crawled successfully.", "data": products}
@@ -33,12 +34,12 @@ async def generate_streaming_crawl_prod(name: str):
     yield ']'
 
 @app.get('/streaming-crawl')
-async def streaming_crawl_controller(name: str = ""):
+async def streaming_crawl_controller(name: str = "", crawl_mode: Literal["top-products", "all-products"] = "top-products"):
     if not name:
         return {"error": True, "message": "Product name is required."}
     print(f"Received request to streaming-crawl product: {name}")
     try:
-        return StreamingResponse(generate_streaming_crawl_prod(name), media_type='application/json')
+        return StreamingResponse(generate_streaming_crawl_prod(name, crawl_mode), media_type='application/json')
     except Exception as e:    
         return {"error": True, "message": str(e)}
     
